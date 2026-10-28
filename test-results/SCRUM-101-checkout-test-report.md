@@ -39,8 +39,8 @@ Other evidence: [products-after-login.png](./evidence/products-after-login.png) 
 - **Initial Chromium run:** 2 passed, 9 failed. Seven failures timed out because the shared `startCheckout()` helper skipped login; the cart-total and empty-cart assertions exposed product behavior.
 - **Healing:** Added login to `startCheckout()`, retained the story-based assertions, and set the suite to one worker because all tests share the same remote demo account/site. The focused browser-back test passed after the repair.
 - Test output was moved to `test-results/playwright-artifacts` so Playwright cleanup does not remove this report or evidence.
-- The requested standalone healer agent could not start because its configured model was unavailable. Playwright’s test-debug output was used to identify and repair the missing-login helper issue; no acceptance assertion was weakened.
-- A fresh MCP browser verification on 2026-10-28 confirmed the login, cart, required-field, invalid-data, and overview-cancellation observations below. New evidence is captured in [current-products-after-login.png](./evidence/current-products-after-login.png) and [current-cart-review.png](./evidence/current-cart-review.png).
+- The checkout healer reviewed the completed suite and confirmed that the existing `startCheckout()` login repair and single-worker configuration address the only automation defects found. No additional files changed, and no acceptance assertion was weakened.
+- A fresh MCP browser verification on 2026-10-28 reproduced the required-field, invalid-data, overview-cancellation, and empty-cart observations. New evidence is captured in [current-manual-cart-review.png](./evidence/current-manual-cart-review.png), [current-manual-invalid-data-accepted.png](./evidence/current-manual-invalid-data-accepted.png), and [current-manual-empty-cart.png](./evidence/current-manual-empty-cart.png).
 
 ### Final browser matrix
 
