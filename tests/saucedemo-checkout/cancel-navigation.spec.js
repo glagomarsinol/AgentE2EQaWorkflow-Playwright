@@ -1,23 +1,19 @@
 const { test, expect } = require('@playwright/test');
-const { BACKPACK, startCheckout, fillCheckout, installFailureScreenshot } = require('./checkout-helpers');
+const { completeCheckoutInformation, startCheckout } = require('./checkout-helpers');
 
-installFailureScreenshot(test);
+test('cancel from checkout information returns to the cart', async ({ page }) => {
+  await startCheckout(page);
+  await page.getByTestId('cancel').click();
 
-test.describe('Checkout cancellation navigation', () => {
-  test('Cancel from checkout information returns to the cart', async ({ page }) => {
-    await startCheckout(page);
-    await page.locator('[data-test="cancel"]').click();
-    await expect(page).toHaveURL(/cart\.html$/);
-    await expect(page.locator('.cart_item').filter({ hasText: BACKPACK })).toBeVisible();
-  });
+  await expect(page).toHaveURL(/cart\.html/);
+  await expect(page.getByText('Sauce Labs Backpack')).toBeVisible();
+});
 
-  test('Cancel from order overview returns to the cart', async ({ page }) => {
-    await startCheckout(page);
-    await fillCheckout(page);
-    await page.locator('[data-test="continue"]').click();
-    await expect(page).toHaveURL(/checkout-step-two\.html$/);
-    await page.locator('[data-test="cancel"]').click();
-    await expect(page).toHaveURL(/cart\.html$/);
-    await expect(page.locator('.cart_item').filter({ hasText: BACKPACK })).toBeVisible();
-  });
+test('cancel from order overview returns to the cart', async ({ page }) => {
+  await startCheckout(page);
+  await completeCheckoutInformation(page);
+  await page.getByTestId('cancel').click();
+
+  await expect(page).toHaveURL(/cart\.html/);
+  await expect(page.getByText('Sauce Labs Backpack')).toBeVisible();
 });

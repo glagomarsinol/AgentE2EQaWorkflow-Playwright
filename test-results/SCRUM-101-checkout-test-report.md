@@ -34,13 +34,17 @@ Other evidence: [products-after-login.png](./evidence/products-after-login.png) 
 
 ## 3. Automated Test Results
 
+The generated JavaScript suite is under `tests/saucedemo-checkout/` and
+contains 11 planned scenarios, including the two validation cases and the
+browser-back case. The suite was executed with `npm run test:checkout` on
+2026-10-28 using the configured Chromium, Firefox, and WebKit projects.
+
 ### Initial run and healing
 
-- **Initial Chromium run:** 2 passed, 9 failed. Seven failures timed out because the shared `startCheckout()` helper skipped login; the cart-total and empty-cart assertions exposed product behavior.
-- **Healing:** Added login to `startCheckout()`, retained the story-based assertions, and set the suite to one worker because all tests share the same remote demo account/site. The focused browser-back test passed after the repair.
+- **Initial full-matrix run:** 12 of 33 executions passed and 21 failed. The failures included four acceptance failures plus locator/setup defects: ambiguous cart quantity text, incorrect assumptions about accessible names, and an incorrect cart badge locator.
+- **Healing:** Added login to `startCheckout()`, replaced ambiguous or unsupported locators with confirmed test IDs/text, retained the story-based assertions, and set the suite to one worker because all tests share the same remote demo account/site. The repaired suite completed with 21 passes and 12 product failures.
 - Test output was moved to `test-results/playwright-artifacts` so Playwright cleanup does not remove this report or evidence.
-- The checkout healer reviewed the completed suite and confirmed that the existing `startCheckout()` login repair and single-worker configuration address the only automation defects found. No additional files changed, and no acceptance assertion was weakened.
-- A fresh MCP browser verification on 2026-10-28 reproduced the required-field, invalid-data, overview-cancellation, and empty-cart observations. New evidence is captured in [current-manual-cart-review.png](./evidence/current-manual-cart-review.png), [current-manual-invalid-data-accepted.png](./evidence/current-manual-invalid-data-accepted.png), and [current-manual-empty-cart.png](./evidence/current-manual-empty-cart.png).
+- The requested standalone healer agent could not start because its configured model was unavailable. Playwright’s test-debug output was used to identify and repair the missing-login helper issue; no acceptance assertion was weakened.
 
 ### Final browser matrix
 

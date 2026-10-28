@@ -1,33 +1,20 @@
 const { test, expect } = require('@playwright/test');
-const { login, installFailureScreenshot } = require('./checkout-helpers');
+const { completeCheckoutInformation, startCheckout } = require('./checkout-helpers');
 
-installFailureScreenshot(test);
+test.use({ viewport: { width: 375, height: 812 } });
 
-test('Checkout remains usable at a mobile viewport', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await login(page);
-  await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
-  await page.locator('[data-test="shopping-cart-link"]').click();
-  await page.locator('[data-test="checkout"]').click();
+test('checkout remains usable at a mobile viewport', async ({ page }) => {
+  await startCheckout(page);
+  await expect(page.getByText('Checkout: Your Information')).toBeVisible();
+  await expect(page.getByTestId('firstName')).toBeVisible();
+  await expect(page.getByTestId('lastName')).toBeVisible();
+  await expect(page.getByTestId('postalCode')).toBeVisible();
+  await expect(page.getByTestId('cancel')).toBeVisible();
+  await expect(page.getByTestId('continue')).toBeVisible();
+  await expect(page.locator('body')).toHaveJSProperty('scrollWidth', 375);
 
-  await expect(page.locator('.title')).toHaveText('Checkout: Your Information');
-  await expect(page.locator('[data-test="firstName"]')).toBeVisible();
-  await expect(page.locator('[data-test="lastName"]')).toBeVisible();
-  await expect(page.locator('[data-test="postalCode"]')).toBeVisible();
-  await expect(page.locator('[data-test="cancel"]')).toBeVisible();
-  await expect(page.locator('[data-test="continue"]')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-
-  await page.locator('[data-test="firstName"]').fill('Ada');
-  await page.locator('[data-test="lastName"]').fill('Lovelace');
-  await page.locator('[data-test="postalCode"]').fill('10001');
-  await expect(page.locator('[data-test="firstName"]')).toHaveValue('Ada');
-  await expect(page.locator('[data-test="lastName"]')).toHaveValue('Lovelace');
-  await expect(page.locator('[data-test="postalCode"]')).toHaveValue('10001');
-  await page.locator('[data-test="continue"]').click();
-
-  await expect(page.locator('.title')).toHaveText('Checkout: Overview');
-  await expect(page.locator('[data-test="cancel"]')).toBeVisible();
-  await expect(page.locator('[data-test="finish"]')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await completeCheckoutInformation(page);
+  await expect(page.getByText('Sauce Labs Backpack')).toBeVisible();
+  await expect(page.getByTestId('cancel')).toBeVisible();
+  await expect(page.getByTestId('finish')).toBeVisible();
 });

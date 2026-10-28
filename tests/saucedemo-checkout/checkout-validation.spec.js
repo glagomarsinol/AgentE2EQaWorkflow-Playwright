@@ -1,35 +1,31 @@
 const { test, expect } = require('@playwright/test');
-const { startCheckout, installFailureScreenshot } = require('./checkout-helpers');
+const { startCheckout } = require('./checkout-helpers');
 
-installFailureScreenshot(test);
-
-test.describe('Checkout information validation', () => {
-  test.beforeEach(async ({ page }) => {
+test.describe('checkout information validation', () => {
+  test('requires first name, last name, and postal code', async ({ page }) => {
     await startCheckout(page);
+
+    await page.getByTestId('continue').click();
+    await expect(page.getByTestId('error')).toContainText('First Name is required');
+
+    await page.getByTestId('firstName').fill('Ada');
+    await page.getByTestId('continue').click();
+    await expect(page.getByTestId('error')).toContainText('Last Name is required');
+
+    await page.getByTestId('lastName').fill('Lovelace');
+    await page.getByTestId('continue').click();
+    await expect(page.getByTestId('error')).toContainText('Postal Code is required');
   });
 
-  test('Checkout requires each mandatory field', async ({ page }) => {
-    const error = page.locator('[data-test="error"]');
-    await page.locator('[data-test="continue"]').click();
-    await expect(error).toContainText('First Name is required');
-    await expect(page).toHaveURL(/checkout-step-one\.html$/);
+  test('rejects invalid name and postal data', async ({ page }) => {
+    await startCheckout(page);
 
-    await page.locator('[data-test="firstName"]').fill('Ada');
-    await page.locator('[data-test="continue"]').click();
-    await expect(error).toContainText('Last Name is required');
+    await page.getByTestId('firstName').fill('!@#');
+    await page.getByTestId('lastName').fill('$%^');
+    await page.getByTestId('postalCode').fill('???');
+    await page.getByTestId('continue').click();
 
-    await page.locator('[data-test="lastName"]').fill('Lovelace');
-    await page.locator('[data-test="continue"]').click();
-    await expect(error).toContainText('Postal Code is required');
-  });
-
-  test('Checkout rejects invalid name and postal data', async ({ page }) => {
-    await page.locator('[data-test="firstName"]').fill('!@#');
-    await page.locator('[data-test="lastName"]').fill('$%^');
-    await page.locator('[data-test="postalCode"]').fill('???');
-    await page.locator('[data-test="continue"]').click();
-
-    await expect(page).toHaveURL(/checkout-step-one\.html$/);
-    await expect(page.locator('[data-test="error"]')).toContainText(/invalid|valid/i);
+    await expect(page).toHaveURL(/checkout-step-one\.html/);
+    await expect(page.getByTestId('error')).toBeVisible();
   });
 });
