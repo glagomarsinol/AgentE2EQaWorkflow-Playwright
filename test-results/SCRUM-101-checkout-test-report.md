@@ -43,6 +43,8 @@ Other evidence: [products-after-login.png](./evidence/products-after-login.png) 
 
 ### Final browser matrix
 
+The full suite was rerun on 2026-10-28 with one worker across all configured browser projects. Results matched the previous run: the four acceptance gaps below reproduced once in each browser; no additional failures appeared.
+
 | Browser project | Passed | Failed | Result |
 |---|---:|---:|---|
 | Chromium | 7 | 4 | Four product deviations |
