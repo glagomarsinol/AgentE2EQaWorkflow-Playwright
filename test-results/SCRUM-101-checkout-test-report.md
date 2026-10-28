@@ -40,6 +40,7 @@ Other evidence: [products-after-login.png](./evidence/products-after-login.png) 
 - **Healing:** Added login to `startCheckout()`, retained the story-based assertions, and set the suite to one worker because all tests share the same remote demo account/site. The focused browser-back test passed after the repair.
 - Test output was moved to `test-results/playwright-artifacts` so Playwright cleanup does not remove this report or evidence.
 - The requested standalone healer agent could not start because its configured model was unavailable. Playwright’s test-debug output was used to identify and repair the missing-login helper issue; no acceptance assertion was weakened.
+- A fresh MCP browser verification on 2026-10-28 confirmed the login, cart, required-field, invalid-data, and overview-cancellation observations below. New evidence is captured in [current-products-after-login.png](./evidence/current-products-after-login.png) and [current-cart-review.png](./evidence/current-cart-review.png).
 
 ### Final browser matrix
 
