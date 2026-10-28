@@ -1,14 +1,10 @@
 const { test, expect } = require('@playwright/test');
-const { installCleanupHook } = require('./checkout-helpers');
+const { BASE_URL, installFailureScreenshot } = require('./checkout-helpers');
 
-test.describe('Checkout access control', () => {
-  installCleanupHook(test);
+installFailureScreenshot(test);
 
-  test('Unauthenticated user cannot open checkout directly', async ({ page }) => {
-    // 1. Navigate directly to checkout in a fresh unauthenticated context.
-    await page.goto('/checkout-step-one.html');
-
-    await expect(page).toHaveURL('https://www.saucedemo.com/');
-    await expect(page.getByRole('form', { name: 'Login' })).toBeVisible();
-  });
+test('Unauthenticated user cannot open checkout directly', async ({ page }) => {
+  await page.goto(`${BASE_URL}/checkout-step-one.html`);
+  await expect(page).toHaveURL(`${BASE_URL}/`);
+  await expect(page.locator('[data-test="error"]')).toContainText('You can only access');
 });

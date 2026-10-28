@@ -1,36 +1,33 @@
 const { test, expect } = require('@playwright/test');
-const {
-  addBackpackToCart,
-  continueToOverview,
-  installCleanupHook,
-  login,
-  openCheckout,
-} = require('./checkout-helpers');
+const { login, installFailureScreenshot } = require('./checkout-helpers');
 
-test.describe('Mobile checkout', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await login(page);
-    await addBackpackToCart(page);
-    await openCheckout(page);
-  });
+installFailureScreenshot(test);
 
-  installCleanupHook(test);
+test('Checkout remains usable at a mobile viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await login(page);
+  await page.locator('[data-test="add-to-cart-sauce-labs-backpack"]').click();
+  await page.locator('[data-test="shopping-cart-link"]').click();
+  await page.locator('[data-test="checkout"]').click();
 
-  test('Checkout remains usable at a mobile viewport', async ({ page }) => {
-    // 1. Verify checkout fields and actions fit the mobile viewport.
-    await expect(page.getByText('Checkout: Your Information')).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'First Name' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Last Name' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Zip/Postal Code' })).toBeVisible();
-    await expect(page.getByTestId('cancel')).toBeVisible();
-    await expect(page.getByTestId('continue')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect(page.locator('.title')).toHaveText('Checkout: Your Information');
+  await expect(page.locator('[data-test="firstName"]')).toBeVisible();
+  await expect(page.locator('[data-test="lastName"]')).toBeVisible();
+  await expect(page.locator('[data-test="postalCode"]')).toBeVisible();
+  await expect(page.locator('[data-test="cancel"]')).toBeVisible();
+  await expect(page.locator('[data-test="continue"]')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
-    // 2. Continue to overview and verify its order actions remain usable.
-    await continueToOverview(page);
-    await expect(page.getByTestId('cancel')).toBeVisible();
-    await expect(page.getByTestId('finish')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  });
+  await page.locator('[data-test="firstName"]').fill('Ada');
+  await page.locator('[data-test="lastName"]').fill('Lovelace');
+  await page.locator('[data-test="postalCode"]').fill('10001');
+  await expect(page.locator('[data-test="firstName"]')).toHaveValue('Ada');
+  await expect(page.locator('[data-test="lastName"]')).toHaveValue('Lovelace');
+  await expect(page.locator('[data-test="postalCode"]')).toHaveValue('10001');
+  await page.locator('[data-test="continue"]').click();
+
+  await expect(page.locator('.title')).toHaveText('Checkout: Overview');
+  await expect(page.locator('[data-test="cancel"]')).toBeVisible();
+  await expect(page.locator('[data-test="finish"]')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
