@@ -2,325 +2,298 @@
 
 ## Workflow Overview
 
-This prompt guides you through a complete 7-step QA workflow using MCP servers and AI agents to go from user story to committed automated test scripts.
+This prompt guides a complete seven-step QA workflow using MCP servers
+and AI agents, from the user story to committed automated test scripts.
 
----
+------------------------------------------------------------------------
 
-# STEP 1: Read User Story
+## STEP 1: Read User Story
 
-## Prompt
+### Prompt
 
-I need to start a new testing workflow. Please read the user story from the file:
+Read `user-stories/SCRUM-101-ecommerce-checkout.md` and summarize the
+key requirements, acceptance criteria, and testing scope.
 
-user-stories/SCRUM-101-ecommerce-checkout.md
+### Expected Output
 
-Summarize the key requirements, acceptance criteria, and testing scope.
+-   Summary of the user story
+-   Acceptance criteria
+-   Application URL and test credentials, if documented
+-   Key features to test
 
-## Expected Output
+------------------------------------------------------------------------
 
-- Summary of the user story
-- List of acceptance criteria
-- Application URL and test credentials
-- Key features to test
+## STEP 2: Create Test Plan
 
----
+### Prompt
 
-# STEP 2: Create Test Plan
+Based on SCRUM-101, use the `playwright-test-planner` agent, if
+available, to:
 
-## Prompt
+1.  Read the application URL and test credentials from the user story.
+2.  Explore the application and understand the workflows in the
+    acceptance criteria.
+3.  Create a comprehensive plan covering:
+    -   Happy-path scenarios
+    -   Negative scenarios (validation errors, empty fields, invalid
+        data)
+    -   Edge cases and boundary conditions
+    -   Navigation-flow tests
+    -   UI-element validation
+4.  Save the plan as `specs/saucedemo-checkout-test-plan.md`.
 
-Based on the user story SCRUM-101 that we just reviewed, use the playwright-test-planner agent to:
+Each scenario must include a clear title, step-by-step instructions,
+expected results for each step, and test data requirements.
 
-1. Read the application URL and test credentials from the user story.
-2. Explore the application and understand all workflows mentioned in the acceptance criteria.
-3. Create a comprehensive test plan that covers all acceptance criteria including:
-   - Happy path scenarios
-   - Negative scenarios (validation errors, empty fields, invalid data)
-   - Edge cases and boundary conditions
-   - Navigation flow tests
-   - UI element validation
+### Expected Output
 
-4. Save the test plan as:
+-   Complete Markdown test plan saved to `specs/`
+-   Clearly organized test scenarios
+-   Browser exploration screenshots, if useful and supported
 
-specs/saucedemo-checkout-test-plan.md
+------------------------------------------------------------------------
 
-Ensure each test scenario includes:
-- Clear test case title
-- Detailed step-by-step instructions
-- Expected results for each step
-- Test data requirements
+## STEP 3: Perform Exploratory Testing
 
-## Expected Output
+### Prompt
 
-- Complete test plan markdown file saved to specs/
-- Organized test scenarios with clear structure
-- Browser exploration screenshots (if needed)
+Read `specs/saucedemo-checkout-test-plan.md` and execute each scenario
+manually using available Playwright MCP browser tools.
 
----
+1.  Follow the steps in each test case.
+2.  Compare actual results with expected results.
+3.  Capture screenshots at key steps and error states when supported.
+4.  Document execution results, UI inconsistencies, missing validations,
+    bugs, and evidence references.
 
-# STEP 3: Perform Exploratory Testing
+### Expected Output
 
-## Prompt
+-   Manual execution results
+-   Screenshots/evidence references where available
+-   Observations and issues discovered during exploration
 
-Now I need to perform manual exploratory testing using Playwright MCP browser tools.
+------------------------------------------------------------------------
 
-Please read the test plan from:
+## STEP 4: Generate Automation Scripts
 
-specs/saucedemo-checkout-test-plan.md
+### Prompt
 
-Then execute the test scenarios defined in that plan:
+Use the `playwright-test-generator` agent, if available, to generate
+JavaScript Playwright tests based on:
 
-1. Use Playwright browser tools to manually execute each test scenario from the plan.
-2. Follow the step-by-step instructions in each test case.
-3. Verify expected results match actual results.
-4. Take screenshots at key steps and error states.
-5. Document your findings:
-   - Test execution results for each scenario
-   - Any UI inconsistencies or unexpected behaviors
-   - Missing validations or bugs discovered
-   - Screenshots as evidence
+1.  `specs/saucedemo-checkout-test-plan.md`
+2.  Step 3 exploratory results, including confirmed selectors and
+    observed UI behavior
 
-## Expected Output
+Create scripts for the planned scenarios under
+`tests/saucedemo-checkout/`.
 
-- Manual test execution results
-- Screenshots of the application at various states
-- List of observations and findings
-- Any issues discovered during exploration
+### Requirements
 
----
+-   Follow Playwright best practices and use appropriate `expect()`
+    assertions.
+-   Use descriptive test names aligned with the test plan.
+-   Prefer stable selectors, including accessible roles/names, IDs, and
+    data attributes confirmed during exploration.
+-   Use suitable synchronization strategies; avoid arbitrary sleeps
+    where possible.
+-   Add comments for complex steps and use `beforeEach`/`afterEach`
+    where appropriate.
+-   Configure Chromium, Firefox, and WebKit where supported. WebKit
+    tests the WebKit engine; it is not native Safari.
 
-# STEP 4: Generate Automation Scripts
+Run the generated tests and record actual results.
 
-## Prompt
+### Expected Output
 
-Now I need to create automated test scripts using the playwright-test-generator agent.
+-   Test files under `tests/saucedemo-checkout/`
+-   Robust selectors and appropriate assertions
+-   Initial execution results
 
-Please review:
+------------------------------------------------------------------------
 
-1. Test plan from: specs/saucedemo-checkout-test-plan.md (for test scenarios and steps)
-2. Exploratory testing results from Step 3 (for actual element selectors and UI insights)
+## STEP 5: Execute and Heal Automation Tests
 
-Using insights from the manual exploratory testing:
+### Prompt
 
-- Leverage the element selectors and locators that were successfully used in Step 3
-- Use stable element selectors (IDs, data attributes, roles) discovered during exploration
-- Apply wait strategies and UI behaviors observed during manual testing
-- Incorporate any workarounds for UI quirks discovered
+Run all automation scripts in `tests/saucedemo-checkout/` and classify
+every failure as one of:
 
-Generate Playwright JavaScript automation scripts:
+-   **Automation defect:** incorrect locator, missing setup,
+    synchronization issue, or test configuration problem.
+-   **Application defect:** behavior violates a documented acceptance
+    criterion or requirement.
+-   **Environment/infrastructure issue:** browser, network,
+    authentication, or test infrastructure prevents reliable evaluation.
 
-1. Create scripts for each test scenario from the test plan
-2. Organize scripts into appropriate test suite files in: tests/saucedemo-checkout/
-3. Use the test case names and steps from the test plan
-4. Use reliable selectors and strategies from exploratory testing
+Use the `playwright-test-healer` agent, if available, or suitable
+Playwright debugging tools to repair automation defects.
 
-Requirements for all scripts:
+1.  Record initial results.
+2.  Repair automation defects and rerun affected tests.
+3.  Run the full suite across Chromium, Firefox, and WebKit where
+    supported.
+4.  Preserve valid acceptance assertions. Never remove, weaken, skip, or
+    bypass an assertion just to make a test pass.
+5.  Do not classify an application defect as a healed test. Keep it
+    reported as a failure until the application is fixed and retested.
+6.  Record repairs, changed files, final results, unresolved defects,
+    and environment limitations.
 
-- Follow Playwright best practices
-- Include proper assertions using expect()
-- Use descriptive test names matching the format in the test plan
-- Use robust element selectors discovered during manual testing
-- Add comments for complex steps
-- Use proper wait strategies based on actual application behavior
-- Add proper test hooks (beforeEach, afterEach)
-- Configure for multiple browsers (Chrome, Firefox, Safari)
+Repeat repairs only while identifiable automation defects remain; do not
+change tests merely to force a fully passing suite.
 
-After generating the scripts, run the tests to verify they pass.
+### Expected Output
 
-## Expected Output
+-   Tests executed and failures classified
+-   Automation defects repaired where possible
+-   Updated scripts under `tests/saucedemo-checkout/`
+-   Initial and final pass/fail/blocked summaries
+-   Application defects and infrastructure issues clearly reported
 
-- Test suite files created in tests/saucedemo-checkout/ based on test plan scenarios
-- Scripts using robust selectors discovered during exploratory testing
-- All scripts follow Playwright best practices
-- Initial test generation complete
+------------------------------------------------------------------------
 
----
+## STEP 6: Create Test Report
 
-# STEP 5: Execute and Heal Automation Tests
+### Prompt
 
-## Prompt
+Compile actual results from Step 3 (manual testing), Step 4 (generated
+scripts), and Step 5 (automation execution and repairs). Save the report
+as `test-results/SCRUM-101-checkout-test-report.md`.
 
-Now I need to execute the generated automation scripts and heal any failures using the playwright-test-healer agent.
+Include these sections:
 
-1. Run all automation scripts in: tests/saucedemo-checkout/
-2. Identify any failing tests.
-3. For each failing test, use the playwright-test-healer agent to:
-   - Analyze the failure (selector issues, timing issues, assertion failures)
-   - Auto-heal the test by fixing selectors, adding waits, or adjusting assertions
-   - Update the test script with the fixes
-4. Re-run the healed tests to verify they pass.
-5. Repeat the heal process until all tests are stable and passing.
-6. Document:
-   - Initial test results (pass/fail count)
-   - Healing activities performed
-   - Final test results after healing
-   - Any tests that couldn't be auto-healed
+### 1. Executive Summary
 
-## Expected Output
+-   Total planned test cases
+-   Manual and automated execution counts, reported separately
+-   Overall PASS/FAIL/BLOCKED status
+-   Important limitations or unexecuted coverage
 
-- All automation tests executed
-- Failing tests identified and healed using test-healer agent
-- Healed test scripts updated in tests/saucedemo-checkout/
-- Final stable test execution results
-- Summary of healing activities performed
+### 2. Manual Test Results
 
----
+-   Step 3 results
+-   Evidence references, where available
+-   Issues found
 
-# STEP 6: Create Test Report
+### 3. Automated Test Results
 
-## Prompt
+-   Initial execution results
+-   Healing activities and reasons for changes
+-   Final execution results
+-   Suite summary and per-browser results where available
 
-Now I need to create a comprehensive test execution report based on manual testing, automation execution, and healing activities.
+### 4. Defects Log
 
-Please compile results from:
+For each confirmed defect, include: - Bug ID and severity
+(Critical/High/Medium/Low) - Title and description - Steps to
+reproduce - Expected versus actual behavior - Evidence reference, if
+available - Environment details - Related acceptance criterion
 
-- Step 3: Manual exploratory testing results
-- Step 4: Generated automation scripts
-- Step 5: Automated test execution and healing results
+Distinguish application defects from automation and environment issues.
 
-Structure the report as:
+### 5. Test Coverage Analysis
 
-test-results/SCRUM-101-checkout-test-report.md
+-   Acceptance criteria covered
+-   Manual versus automated coverage
+-   Coverage gaps
+-   Recommendations for additional testing
 
-Include:
+### 6. Summary and Recommendations
 
-## 1. Executive Summary
+-   Quality assessment based on collected evidence
+-   Risk areas
+-   Next steps
 
-- Total test cases planned
-- Test cases executed (manual + automated)
-- Overall pass/fail/blocked status
+### Expected Output
 
-## 2. Manual Test Results
+-   Report with clear PASS/FAIL/BLOCKED status for each scenario
+-   Detailed records for confirmed defects
+-   Coverage analysis
+-   Evidence references; never invent screenshots or results that were
+    not captured
 
-- Results from Step 3 exploratory testing
-- Screenshots and observations
-- Issues found during manual testing
+------------------------------------------------------------------------
 
-## 3. Automated Test Results
+## STEP 7: Commit to Git Repository
 
-- Initial automation results from Step 5
-- Healing activities performed
-- Final test execution results after healing
-- Test suite execution summary
-- Pass/fail count for each test suite
+### Repository
 
-## 4. Defects Log
+[AgentE2EQaWorkflow-Playwright](https://github.com/glagomarsinol/AgentE2EQaWorkflow-Playwright.git)
 
-For any failed tests (manual or automated):
+### Prompt
 
-- Bug ID
-- Severity (Critical/High/Medium/Low)
-- Title and Description
-- Steps to Reproduce
-- Expected vs Actual Behavior
-- Screenshots/Evidence
-- Environment Details
+Use the available GitHub MCP agent or local Git tooling to commit the
+intended test artifacts.
 
-## 5. Test Coverage Analysis
+1.  Check whether the workspace is already a Git repository; initialize
+    only if necessary.
+2.  Inspect `git status` and review the changes.
+3.  Stage intended project files only. Do not stage secrets,
+    credentials, local environment files, generated noise, or unrelated
+    changes.
+4.  Create a commit with this message:
 
-- Which acceptance criteria are covered
-- Coverage from manual vs automated tests
-- Any gaps in test coverage
-- Recommendations for additional testing
+``` text
+feat(tests): Add complete test suite for SCRUM-101 checkout workflow
 
-## 6. Summary and Recommendations
+- Add user story documentation
+- Add comprehensive test plan with all scenarios
+- Add test execution report with results
+- Add automated test scripts for checkout process
+- Include validation, navigation, and edge case tests
 
-- Overall quality assessment
-- Risk areas
-- Next steps
+Resolves SCRUM-101
+```
 
-## Expected Output
+5.  Verify the repository, branch, and remote before pushing.
+6.  Verify the push result. If authentication or network access fails,
+    report the actual status and required next action. Never claim
+    success without verification.
+7.  Summarize the commit hash, files changed, and push status.
 
-- Comprehensive test execution report covering both manual and automated testing
-- Clear PASS/FAIL status for all test scenarios
-- Detailed bug reports for failures
-- Complete test coverage analysis
-- Evidence and screenshots attached
+### Expected Output
 
----
+-   Intended files committed
+-   Conventional commit message
+-   Verified push status or a clear explanation if it failed
+-   Summary of committed changes
 
-# STEP 7: Commit to Git Repository
+------------------------------------------------------------------------
 
-## Git Repository URL
+## Complete Workflow Execution: Single Combined Prompt
 
-https://github.com/glagomarsinol/AgentE2EQaWorkflow-Playwright.git
+I want to demonstrate a complete end-to-end QA workflow using natural
+language and MCP servers. Execute the seven steps in order and provide a
+concise status update after each step.
 
-## Prompt
+Use available tools and agents. If a named agent or MCP tool is
+unavailable, state the limitation and use an appropriate alternative
+where possible. Do not claim an action was completed unless it was
+actually performed and verified.
 
-Now I need to commit all the test artifacts to the Git repository using the GitHub MCP agent.
+1.  **Read user story:** Read
+    `user-stories/SCRUM-101-ecommerce-checkout.md` and summarize
+    requirements and acceptance criteria.
+2.  **Create test plan:** Use `playwright-test-planner`, if available,
+    to explore the application and save a comprehensive plan to
+    `specs/saucedemo-checkout-test-plan.md`.
+3.  **Exploratory testing:** Execute the plan with available Playwright
+    browser tools and record actual results, evidence, and defects.
+4.  **Generate scripts:** Use `playwright-test-generator`, if available,
+    to create JavaScript Playwright tests in
+    `tests/saucedemo-checkout/`.
+5.  **Execute and heal:** Run tests, repair automation defects with
+    `playwright-test-healer` or debugging tools, preserve acceptance
+    assertions, and report genuine application failures.
+6.  **Create report:** Save actual results, repairs, defects, evidence,
+    and coverage analysis to
+    `test-results/SCRUM-101-checkout-test-report.md`.
+7.  **Commit to Git:** Stage and commit intended artifacts, push to the
+    repository, and verify the commit hash and push status.
 
-Git Repository URL:
+### Final Summary
 
-https://github.com/glagomarsinol/AgentE2EQaWorkflow-Playwright.git
-
-Please perform the following Git operations:
-
-1. Initialize Git repository if not already initialized.
-2. Stage all files in the workspace (all new and modified files).
-3. Create a commit with the message:
-
-   "feat(tests): Add complete test suite for SCRUM-101 checkout workflow
-
-   - Add user story documentation
-   - Add comprehensive test plan with all scenarios
-   - Add test execution report with results
-   - Add automated test scripts for checkout process
-   - Include validation, navigation, and edge case tests
-
-   Resolves SCRUM-101"
-
-4. Push all changes to the Git repository.
-5. Provide a summary of what was committed.
-
-## Expected Output
-
-- All workspace files committed to Git
-- Descriptive commit message following conventional commit format
-- Confirmation of successful push to the provided repository
-- Summary of changes
-
----
-
-# Complete Workflow Execution
-
-## Single Combined Prompt (for Video Demo)
-
-I want to demonstrate a complete end-to-end QA workflow using natural language and MCP servers.
-
-### STEP 1 - READ USER STORY:
-
-First, read the user story from: user-stories/SCRUM-101-ecommerce-checkout.md
-
-Provide a brief summary of what needs to be tested.
-
-### STEP 2 - CREATE TEST PLAN:
-
-Use the playwright-test-planner agent to create a comprehensive test plan based on the user story. The agent should explore the application URL from the user story and cover all acceptance criteria. Save it as:
-
-specs/saucedemo-checkout-test-plan.md
-
-### STEP 3 - EXPLORATORY TESTING:
-
-Read the test plan from specs/saucedemo-checkout-test-plan.md and use Playwright browser tools to manually execute each test scenario. Document findings with screenshots and note any issues discovered.
-
-### STEP 4 - GENERATE AUTOMATION SCRIPTS:
-
-Review both the test plan (specs/saucedemo-checkout-test-plan.md) and exploratory testing results from Step 3. Use the playwright-test-generator agent to create JavaScript automation scripts leveraging the element selectors and insights discovered during manual testing. Save scripts in tests/saucedemo-checkout/.
-
-### STEP 5 - EXECUTE AND HEAL TESTS:
-
-Run all automation scripts from tests/saucedemo-checkout/. Use the playwright-test-healer agent to identify and auto-heal any failing tests. Re-run tests until all are stable and passing. Document healing activities.
-
-### STEP 6 - CREATE TEST REPORT:
-
-Create a comprehensive test execution report at:
-
-test-results/SCRUM-101-checkout-test-report.md
-
-Compile results from Step 3 (manual testing), Step 4 (script generation), and Step 5 (execution and healing). Include PASS/FAIL status, healing summary, defects log, and test coverage analysis.
-
-### STEP 7 - COMMIT TO GIT:
-
-Use the GitHub MCP agent to commit all new files with a descriptive message and push to the repository.
-
-Execute this complete workflow and provide status updates after each step.
+Report: - Status of each workflow step - Artifacts created or updated -
+Manual and automated results - Confirmed application defects and
+unresolved issues - Commit hash and verified push status, if completed
