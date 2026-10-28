@@ -1,0 +1,13 @@
+
+# Playwright
+node_modules/
+/test-results/*
+!/test-results/SCRUM-101-checkout-test-report.md
+!/test-results/evidence/
+/test-results/evidence/*
+!/test-results/evidence/*.png
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+/.playwright-mcp/

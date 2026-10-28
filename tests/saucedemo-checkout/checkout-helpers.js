@@ -1,0 +1,53 @@
+const { expect } = require('@playwright/test');
+
+async function login(page) {
+  await page.goto('/');
+  await page.getByTestId('username').fill('standard_user');
+  await page.getByTestId('password').fill('secret_sauce');
+  await page.getByTestId('login-button').click();
+  await expect(page).toHaveURL(/inventory\.html$/);
+}
+
+async function addBackpackToCart(page) {
+  await page.getByTestId('add-to-cart-sauce-labs-backpack').click();
+  await expect(page.getByTestId('shopping-cart-badge')).toHaveText('1');
+}
+
+async function openCheckout(page) {
+  await page.getByTestId('shopping-cart-link').click();
+  await expect(page).toHaveURL(/cart\.html$/);
+  await page.getByTestId('checkout').click();
+  await expect(page).toHaveURL(/checkout-step-one\.html$/);
+}
+
+async function enterValidCheckoutInformation(page) {
+  await page.getByTestId('firstName').fill('Ada');
+  await page.getByTestId('lastName').fill('Lovelace');
+  await page.getByTestId('postalCode').fill('10001');
+}
+
+async function continueToOverview(page) {
+  await enterValidCheckoutInformation(page);
+  await page.getByTestId('continue').click();
+  await expect(page).toHaveURL(/checkout-step-two\.html$/);
+}
+
+function installCleanupHook(test) {
+  test.afterEach(async ({ page }) => {
+    if (page.url().startsWith('https://www.saucedemo.com')) {
+      await page.evaluate(() => {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+      });
+    }
+  });
+}
+
+module.exports = {
+  addBackpackToCart,
+  continueToOverview,
+  enterValidCheckoutInformation,
+  installCleanupHook,
+  login,
+  openCheckout,
+};
